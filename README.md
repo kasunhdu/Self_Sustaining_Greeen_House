@@ -6,4 +6,4 @@ Artificial lighting, water, temperature are all changed based on the setting. Ch
 
 We were lucky to be 2nd runners-up at the IEEE Challenge Sphere Arduino challenge 2024.
 
-![2024_07_31_06_38_IMG_9890](https://github.com/user-attachments/assets/cceac36f-ea75-403a-982d-4b7be8b93d92)
+![2024_07_31_06_38_IMG_9892](https://github.com/user-attachments/assets/3484c137-24c3-4df8-9d64-854d1854741c)
