@@ -1,0 +1,306 @@
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27,16,2);
+#include <DFRobot_DHT11.h>
+DFRobot_DHT11 DHT;
+
+#define kp 3.5
+#define ki 0.000001
+#define kd 0.0001
+
+#define analogSoil A0
+#define pot A2
+#define LDR_pin A6
+
+#define DHT11_PIN 2
+#define uv 3
+#define wPump 6
+#define red 9
+#define green 10
+#define blue 11
+
+
+int pos ;
+const int height = 15;
+
+//UltraSonic Sensor
+const int trigPin = 5 ;
+const int echoPin = 4 ;
+long duration;
+int distance,output_soil_Value,output_LDR_Value;
+int x_data[2];
+int wholeSum;
+int error,u,prev_error=0,Integ_error=0 ;
+int LED_set,led_error  ;
+int time_1, time_2,time_difference;
+
+void setup() {
+ 
+ pinMode(pot,INPUT);
+ pinMode(2,INPUT);
+
+ //ultrasonic
+ pinMode(trigPin,OUTPUT);
+ pinMode(echoPin,INPUT);
+ 
+ lcd.init();
+ lcd.clear();         
+ lcd.backlight();
+ time_1 = millis();
+ Serial.begin(9600);
+}
+
+void loop() {
+//reading soil and LDR and controlling DC motor
+  output_soil_Value = map(analogRead(analogSoil), 0, 1023, 150, 0);
+  output_LDR_Value = map(analogRead(LDR_pin), 0, 1023, 100, 0);
+
+
+ 
+//Reading pot and switch     
+   pos = analogRead(pot);
+
+
+
+//Humidity & temperature
+    DHT.read(DHT11_PIN);
+
+    
+   
+//Ultrasonic sensor
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(10);
+  duration = pulseIn(echoPin, HIGH);
+  int dis = duration * 0.034 / 2;
+
+//moving avarage filter for ultrasonic sensor   
+ for(int i =0;i<2;i++){
+    x_data[i] = dis;
+  }
+  for(int j =0;j<2;j++){
+    wholeSum = wholeSum + x_data[j] ;
+  }
+  distance = wholeSum / 2;
+
+  
+  x_data[2] ={0};
+  wholeSum = 0;
+
+  time_2 = millis();
+
+  //calculating time
+
+  time_difference = (time_2 - time_1); //chacking the photosynthesis time in plant
+
+
+
+if(output_soil_Value > 9){
+ if(time_difference <36000000){  
+  if(distance < height){
+
+  
+      if(pos < 201){
+        lcd.clear();
+        lcd.setCursor(0,0);   //Move cursor to character 2 on line 1
+        lcd.print("Climate:Tropical");
+
+        LED_set = 80;  
+         //applying PID to LEDs
+        error = abs((LED_set - output_LDR_Value ));
+        Integ_error = (prev_error + error);    
+        u = abs(kp*(error) + kd*(error-prev_error) +ki*(Integ_error));
+        prev_error = error; 
+         
+           led_error = map(u, 0,80, 0 ,160); // 160 means led max pwm = 230  
+           
+          analogWrite(blue,(60+led_error));
+          analogWrite(red,(70+led_error));
+          analogWrite(green,(100+led_error));
+          analogWrite(uv,(80+led_error));
+          
+          //controlling water pump
+          if(output_soil_Value < 80){
+              analogWrite(wPump,255);
+                }
+          else if(output_soil_Value > 80){
+          analogWrite(wPump,0);
+           }
+          Serial.println(u);
+
+        }
+        else if(pos > 199 && pos < 401){
+          lcd.clear();
+          lcd.setCursor(0,0);
+          lcd.print("Climate:Desert");
+         
+          LED_set =90;  
+           //applying PID to LEDs
+          error = abs((LED_set - output_LDR_Value ));
+          Integ_error = (prev_error + error);    
+          u = abs(kp*(error) + kd*(error-prev_error) +ki*(Integ_error));
+          prev_error = error;
+           
+           led_error = map(u, 0,90, 0 ,160); // 160 means led max pwm = 230 
+           
+          analogWrite(blue,(70+led_error));
+          analogWrite(red,(70+led_error));
+          analogWrite(green,(100+led_error));
+          analogWrite(uv,(75+led_error));
+          
+            //controlling water pump
+          if(output_soil_Value < 15){
+           analogWrite(wPump,255);
+             }
+            else if(output_soil_Value > 15){
+             analogWrite(wPump,0);
+            }
+          
+          }
+          
+          else if(pos > 399 && pos < 601){
+            lcd.clear();
+            lcd.setCursor(0,0);
+            lcd.print("Climate:Temperate");
+            LED_set = 50; 
+         //applying PID to LEDs
+          error = abs((LED_set - output_LDR_Value ));
+          Integ_error = (prev_error + error);    
+          u = abs(kp*(error) + kd*(error-prev_error) +ki*(Integ_error));
+          prev_error = error; 
+
+          led_error = map(u, 0,50, 0 ,160); // 160 means led max pwm = 230 
+            
+          analogWrite(blue,(70+led_error));
+          analogWrite(red,(70+led_error));
+          analogWrite(green,(100+led_error));
+          analogWrite(uv,(80+led_error));
+
+             //controlling water pump
+            if(output_soil_Value < 50){
+               analogWrite(wPump,255);
+                }
+            else if(output_soil_Value > 50){
+             analogWrite(wPump,0);
+                }
+            
+            
+            }
+          else if(pos > 599 && pos < 801){
+            lcd.clear();
+            lcd.setCursor(0,0);
+            lcd.print("Climate:Cool");
+
+            LED_set =  30;
+           //applying PID to LEDs
+          error = abs((LED_set - output_LDR_Value ));
+          Integ_error = (prev_error + error);    
+          u = abs(kp*(error) + kd*(error-prev_error) +ki*(Integ_error));
+          prev_error = error; 
+
+          led_error = map(u, 0,30, 0 ,160); // 160 means led max pwm = 230 
+            
+          analogWrite(blue,(80+led_error));
+          analogWrite(red,(90+led_error));
+          analogWrite(green,(100+led_error));
+          analogWrite(uv,(80+led_error));
+          
+               //controlling water pump
+            if(output_soil_Value < 60){
+             analogWrite(wPump,0);
+                }
+            else if(output_soil_Value > 60){
+             analogWrite(wPump,0);
+                }
+            
+            }
+            else if(pos > 799 && pos < 1024){
+            lcd.clear();
+            lcd.setCursor(0,0);
+            lcd.print("Climate:H Altitu");
+
+            LED_set =  40;
+           //applying PID to LEDs
+          error = abs((LED_set - output_LDR_Value ));
+          Integ_error = (prev_error + error);    
+          u = abs(kp*(error) + kd*(error-prev_error) +ki*(Integ_error));
+          prev_error = error; 
+
+            led_error = map(u, 0,80, 0 ,160); // 160 means led max pwm = 230 
+            
+           analogWrite(blue,(70+led_error));
+           analogWrite(red,(80+led_error));
+           analogWrite(green,(100+led_error));
+           analogWrite(uv,(75+led_error));
+
+          //controlling water pump
+
+            if(output_soil_Value < 55){
+             analogWrite(wPump,255);
+              }
+            else if(output_soil_Value > 55){
+             analogWrite(wPump,0);
+              }
+            
+            
+            }
+
+     
+    lcd.setCursor(0,1);
+    lcd.print("T:");
+    lcd.print(DHT.temperature);
+    lcd.setCursor(5,1);
+    lcd.print("L:");
+    lcd.print(output_LDR_Value);
+    lcd.setCursor(12,1);
+    lcd.print("M:");
+    lcd.print(output_soil_Value);
+           
+    
+
+    
+
+  }
+  else if(distance > height){ 
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Plant NOT FOUND");// if there is no plant
+    analogWrite(blue,255);
+    analogWrite(red,255);
+    analogWrite(green,255);
+    analogWrite(uv,255);
+    analogWrite(wPump,0);
+  }
+
+  }
+else if(time_difference >36000000){ 
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Plant in Resting");
+    analogWrite(blue,255);
+    analogWrite(red,255);
+    analogWrite(green,255);
+    analogWrite(uv,255);
+    analogWrite(wPump,0);
+}
+else if(time_difference >72000000){ 
+ time_difference = 0; 
+} 
+
+}
+else if(output_soil_Value < 10){ 
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("SOIL Sensor");
+    lcd.setCursor(0,1);
+    lcd.print("NOT CONNECTED");
+    analogWrite(blue,255);
+    analogWrite(red,255);
+    analogWrite(green,255);
+    analogWrite(uv,255);
+    analogWrite(wPump,0);
+}
+
+}
