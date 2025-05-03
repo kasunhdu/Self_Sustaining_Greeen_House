@@ -1,6 +1,7 @@
 # Self_Sustaining_Greeen_House
 
-![2024_07_30_16_26_IMG_9881](https://github.com/user-attachments/assets/1f04a0fb-d427-4f64-83b5-b2689dc36142)
+![2024_07_30_16_26_IMG_9881](https://github.com/user-attachments/assets/1f04a0fb-d427-4f64-83b5-b2689dc36142) ![2024_09_05_10_59_IMG_0190](https://github.com/user-attachments/assets/7a3712f6-17d7-4bd0-823b-ccfdc4a4c861)
+
 Artificial lighting, water, temperature are all changed based on the setting. Changing the conditions according to the climate setting.This system can even be used to protect endangered plants by providing the optimal conditions.
 ![image](https://github.com/user-attachments/assets/bfc346fa-27d5-4fce-acd3-cd976dbefe93)
 
